@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Networking;
 
 public class StableDiffusion : MonoBehaviour
 {
@@ -64,6 +65,16 @@ public class StableDiffusion : MonoBehaviour
     {
         // ref. https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/API
         // ref. https://docs.unity3d.com/ScriptReference/Networking.UnityWebRequest.Post.html
+
+        WWWForm form = new WWWForm();
+        form.AddField("json", "{\"prompt\": \"maltese puppy\",\"steps\": 5}");
+
+        UnityWebRequest www = UnityWebRequest.Post("http://127.0.0.1:7860/sdapi/v1/txt2img", form);
+        UnityWebRequestAsyncOperation req = www.SendWebRequest();
+
+        Debug.Log(www.GetResponseHeader(""));
+
+
         yield return null;
     }
     
