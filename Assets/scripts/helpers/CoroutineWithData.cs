@@ -5,10 +5,10 @@ using UnityEngine;
 public class CoroutineWithData<T>
 {
     private IEnumerator _target;
-    public T result;
+    private object result;
     public Coroutine Coroutine { get; private set; }
  
-    public CoroutineWithData(MonoBehaviour owner_, IEnumerator target_)
+    public CoroutineWithData(MonoBehaviour owner_, IEnumerator<T> target_)
     {
         _target = target_;
         Coroutine = owner_.StartCoroutine(Run());
@@ -18,8 +18,10 @@ public class CoroutineWithData<T>
     {
         while(_target.MoveNext())
         {
-            result = (T)_target.Current;
+            result = _target.Current;
             yield return result;
         }
     }
+    
+    public T Result => (T) result;
 }

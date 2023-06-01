@@ -6,13 +6,9 @@ using Cysharp.Threading.Tasks;
 public class testScript : MonoBehaviour
 {
     // Start is called before the first frame update
-    void Start()
+    IEnumerator Start()
     {
-        test();
-    }
-
-    IEnumerator test()
-    {
+        Debug.Log("start!");
         StableDiffusion instance = StableDiffusion.Instance;
         Texture2D control = null;
         Texture2D result;

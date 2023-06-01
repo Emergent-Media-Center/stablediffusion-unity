@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using Cysharp.Threading.Tasks;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -40,8 +41,39 @@ public class StableDiffusion : MonoBehaviour
         // ref. https://learn.microsoft.com/en-us/dotnet/api/system.io.file.exists?view=net-7.0
         // ref. unzip with  System.IO.Compression.FileSystem probably
 
-        // download and unzip the automatic1111 zip isnt already downloaded
-        // https://github.com/AUTOMATIC1111/stable-diffusion-webui/archive/refs/tags/v1.3.0.zip
+        // download the automatic1111 zip isnt already downloaded
+        if (!File.Exists(Application.persistentDataPath + Path.PathSeparator + "stable-diffusion-webui.zip"))
+        {
+            UnityWebRequest dlreq =
+                new UnityWebRequest(
+                    "https://github.com/AUTOMATIC1111/stable-diffusion-webui/archive/refs/tags/v1.3.0.zip");
+            dlreq.downloadHandler =
+                new DownloadHandlerFile(Application.persistentDataPath + Path.PathSeparator + "stable-diffusion-webui.zip");
+            var op = dlreq.SendWebRequest();
+            
+            while (!op.isDone)
+            {
+                //here you can see download progress
+                Debug.Log( "StableDiffusion Download: " + (dlreq.downloadedBytes / 1000).ToString() + "KB");
+                yield return null;
+            }
+            
+            if (dlreq.isNetworkError || dlreq.isHttpError)
+            {
+                Debug.Log(dlreq.error);
+            }
+            else
+            {
+                Debug.Log("download success");
+            }
+        }
+        
+        // unzip if it is not unzipped already
+        if (!Directory.Exists(Application.persistentDataPath + Path.PathSeparator + "stablediffusion")) {
+            System.IO.Compression.ZipFile.ExtractToDirectory(Application.persistentDataPath + Path.PathSeparator + "stable-diffusion-webui.zip", Application.persistentDataPath + Path.PathSeparator + "stablediffusion");
+            Debug.Log("unzip success");
+        }
+        
         // start the python server
         // wait for the server to be ready
         // start capturing the logs and outputting them to the console or other logging system
