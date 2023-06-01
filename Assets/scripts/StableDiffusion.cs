@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -8,6 +9,7 @@ using UnityEngine.Networking;
 public class StableDiffusion : MonoBehaviour
 {
     private static StableDiffusion instance = null;
+    public Texture2D stableDiffusionImage = null;
     
     // logging data structure
     // general semaphores, isstaring, isdownloading, isready, isrunning, etc
@@ -61,8 +63,9 @@ public class StableDiffusion : MonoBehaviour
     
     // todo: return a texture2d
     // todo: pass extra parameters needed by the AUTOMATIC1111 API. build the data structure for that
-    public IEnumerator<Texture2D> GenerateImage(string prompt, Texture2D controlImage)
+    public IEnumerator GenerateImage(string prompt, Texture2D controlImage)
     {
+        // ref. https://github.com/Cysharp/UniTask
         // ref. https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/API
         // ref. https://docs.unity3d.com/ScriptReference/Networking.UnityWebRequest.Post.html
 
@@ -70,12 +73,13 @@ public class StableDiffusion : MonoBehaviour
         form.AddField("json", "{\"prompt\": \"maltese puppy\",\"steps\": 5}");
 
         UnityWebRequest www = UnityWebRequest.Post("http://127.0.0.1:7860/sdapi/v1/txt2img", form);
-        UnityWebRequestAsyncOperation req = www.SendWebRequest();
+        yield return www.SendWebRequest();
 
-        Debug.Log(www.GetResponseHeader(""));
-
-
-        yield return null;
+        Debug.Log(www.downloadHandler.text);
+        
+        // todo: extract the image from the response
+        // todo: fill the variable stableDiffusionImage from the response above
+        // https://docs.unity3d.com/ScriptReference/Texture2D.LoadRawTextureData.html
     }
     
     private void OnApplicationQuit()
