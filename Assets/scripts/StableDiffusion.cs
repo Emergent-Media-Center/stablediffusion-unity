@@ -243,7 +243,7 @@ public class StableDiffusion : MonoBehaviour
     
     // todo: return a texture2d
     // todo: pass extra parameters needed by the AUTOMATIC1111 API. build the data structure for that
-    public IEnumerator GenerateImage(string prompt, Texture2D controlImage)
+    public IEnumerator GenerateImage(string prompt)
     {
         // ref. https://github.com/Cysharp/UniTask
         // ref. https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/API
@@ -266,7 +266,20 @@ public class StableDiffusion : MonoBehaviour
             // Btw afaik you can simply
             yield return www.SendWebRequest();
 
+            if (www.result != UnityWebRequest.Result.Success) {
+                Debug.LogError(www.error);
+                yield break;
+            }
+            
             Debug.Log(www.downloadHandler.text);
+
+            StableDiffusionTextToImageResponse jsonparsed = JsonUtility.FromJson<StableDiffusionTextToImageResponse>(www.downloadHandler.text);
+            byte[] imagebytes = System.Convert.FromBase64String(jsonparsed.images[0]);
+
+            if (stableDiffusionImage == null)
+                stableDiffusionImage = new Texture2D(512,512);
+
+            stableDiffusionImage.LoadImage(imagebytes);
 
             // todo: extract the image from the response
             // todo: fill the variable stableDiffusionImage from the response above

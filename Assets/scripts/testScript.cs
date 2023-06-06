@@ -16,7 +16,7 @@ public class testScript : MonoBehaviour
             yield return null;
 
         // call the dowload and wait for it to finish
-        var coro = StartCoroutine(instance.GenerateImage("horse", null));
+        var coro = StartCoroutine(instance.GenerateImage("horse"));
         yield return coro;
         Texture2D text = instance.stableDiffusionImage;
     }
