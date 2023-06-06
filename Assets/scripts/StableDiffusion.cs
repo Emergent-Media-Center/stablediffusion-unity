@@ -80,6 +80,8 @@ public class StableDiffusion : MonoBehaviour
                 }
             }
 
+            logs.Add("stablo diffusion zip file exists");
+            
             // unzip if it is not unzipped already
             if (!Directory.Exists(Application.persistentDataPath + Path.DirectorySeparatorChar + "stablediffusion"))
             {
@@ -88,6 +90,8 @@ public class StableDiffusion : MonoBehaviour
                     Application.persistentDataPath + Path.DirectorySeparatorChar + "stablediffusion");
                 logs.Add("unzip success");
             }
+            
+            logs.Add("stable diffusion directory exists");
 
             // todo: update stablediffusion
             // start the python server
@@ -122,31 +126,41 @@ public class StableDiffusion : MonoBehaviour
             
             await UniTask.Yield();
 
+            string executer = isWin ? "cmd.exe" : "bash";
+
+            
             // run webui
-            process = new Process
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    // WorkingDirectory = subdir,
-                    // FileName = webui,
-                    FileName = fullpath,
-                    Arguments = "--api --disable-console-progressbars --nowebui",
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    CreateNoWindow = true
-                },
-            };
+            // process = new Process
+            // {
+            //     StartInfo = new ProcessStartInfo
+            //     {
+            //         // WorkingDirectory = subdir,
+            //         // FileName = webui,
+            //         FileName = executer,
+            //         Arguments = fullpath + " --api --disable-console-progressbars --nowebui",
+            //         // UseShellExecute = false,
+            //         // RedirectStandardOutput = true,
+            //         // CreateNoWindow = true
+            //         UseShellExecute = true,
+            //         RedirectStandardOutput = false,
+            //         CreateNoWindow = false
+            //     },
+            // };
 
             // wait for the server to be ready
             // start capturing the logs and outputting them to the console or other logging system
             logs.Add("before start");
-            process.Start();
+            // process.Start();
+            process = Process.Start(fullpath);
             logs.Add("started");
-            while (!process.StandardOutput.EndOfStream)
-            {
-                string line = process.StandardOutput.ReadLine();
-                logs.Add(line);
-            }
+            // while (!process.StandardOutput.EndOfStream)
+            // {
+            //     string line = process.StandardOutput.ReadLine();
+            //     logs.Add(line);
+            // }
+
+            process.WaitForExit();
+            logs.Add("exit");
 
             // change the ready state
             await UniTask.Yield();
