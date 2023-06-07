@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using Cysharp.Threading.Tasks;
+using Newtonsoft.Json;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -249,8 +250,19 @@ public class StableDiffusion : MonoBehaviour
         // ref. https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/API
         // ref. https://docs.unity3d.com/ScriptReference/Networking.UnityWebRequest.Post.html
         
+
+        Dictionary<string, object> promptDict = new Dictionary<string, object>();
+        promptDict["prompt"] = "horse";
+        promptDict["steps"] = 50;
+        promptDict["cfg_scale"] = 7;
+        promptDict["sampler_index"] = "Euler a";
+        promptDict["width"] = 512;
+        promptDict["height"] = 512;
+
         // todo: improve and make it work as dictionary
-        string json = "{\"prompt\": \"" + prompt + "\",\"steps\": 50,\"cfg_scale\": 7,\"sampler_index\": \"Euler a\",\"width\": 512,\"height\": 512}";
+        //string json = "{\"prompt\": \"" + prompt + "\",\"steps\": 50,\"cfg_scale\": 7,\"sampler_index\": \"Euler a\",\"width\": 512,\"height\": 512}";
+        //note: JsonUtilities does not support dicts for some reason, so i am using newtonsoft json
+        string json = JsonConvert.SerializeObject(promptDict);
         var bytes = Encoding.UTF8.GetBytes(json);
         Debug.Log(json);
 
