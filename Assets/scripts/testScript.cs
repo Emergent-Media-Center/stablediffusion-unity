@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
+using UnityEngine.UI;
 
 public class testScript : MonoBehaviour
 {
@@ -10,12 +11,15 @@ public class testScript : MonoBehaviour
     {
         Debug.Log("start!");
         StableDiffusion instance = StableDiffusion.Instance;
-        Texture2D control = null;
-        Texture2D result;
+
+        // wait to get ready
+        while (!instance.IsReady())
+            yield return null;
+
         // call the dowload and wait for it to finish
-        var coro = StartCoroutine(instance.GenerateImage("test", control));
+        var coro = StartCoroutine(instance.GenerateImage("horse"));
         yield return coro;
-        Texture2D text = instance.stableDiffusionImage;
+        GetComponent<Renderer>().material.mainTexture = instance.stableDiffusionImage;
     }
 
     // Update is called once per frame
