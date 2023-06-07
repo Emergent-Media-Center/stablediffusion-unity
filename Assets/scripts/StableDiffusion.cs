@@ -252,7 +252,7 @@ public class StableDiffusion : MonoBehaviour
         
 
         Dictionary<string, object> promptDict = new Dictionary<string, object>();
-        promptDict["prompt"] = "horse";
+        promptDict["prompt"] = prompt;
         promptDict["steps"] = 50;
         promptDict["cfg_scale"] = 7;
         promptDict["sampler_index"] = "Euler a";
