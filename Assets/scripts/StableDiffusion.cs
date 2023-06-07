@@ -280,7 +280,10 @@ public class StableDiffusion : MonoBehaviour
                 stableDiffusionImage = new Texture2D(512,512);
 
             stableDiffusionImage.LoadImage(imagebytes);
+            stableDiffusionImage.Apply();
+            
 
+            yield return null;
             // todo: extract the image from the response
             // todo: fill the variable stableDiffusionImage from the response above
             // https://docs.unity3d.com/ScriptReference/Texture2D.LoadRawTextureData.html
