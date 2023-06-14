@@ -252,29 +252,33 @@ public class StableDiffusion : MonoBehaviour
     
     // todo: return a texture2d
     // todo: pass extra parameters needed by the AUTOMATIC1111 API. build the data structure for that
-    public IEnumerator GenerateImage(string prompt)
+    public IEnumerator GenerateImage(string prompt, APITypes apiType, Dictionary<string, object> payload)
     {
         // ref. https://github.com/Cysharp/UniTask
         // ref. https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/API
         // ref. https://docs.unity3d.com/ScriptReference/Networking.UnityWebRequest.Post.html
-        
 
-        Dictionary<string, object> promptDict = new Dictionary<string, object>();
-        promptDict["prompt"] = prompt;
-        promptDict["steps"] = 20;
-        promptDict["cfg_scale"] = 7;
-        promptDict["sampler_index"] = "Euler a";
-        promptDict["width"] = 1024;
-        promptDict["height"] = 512;
+        int width = 512, height = 512;
+
+        if(payload.TryGetValue("width", out object w))
+        {
+            width = (int)w;
+        }
+
+        if(payload.TryGetValue("height", out object h))
+        {
+            height = (int)h;
+        }
+        Debug.Log(width + "x" + height);
 
         // todo: improve and make it work as dictionary
         //string json = "{\"prompt\": \"" + prompt + "\",\"steps\": 50,\"cfg_scale\": 7,\"sampler_index\": \"Euler a\",\"width\": 512,\"height\": 512}";
         //note: JsonUtilities does not support dicts for some reason, so i am using newtonsoft json
-        string json = JsonConvert.SerializeObject(promptDict);
+        string json = JsonConvert.SerializeObject(payload);
         var bytes = Encoding.UTF8.GetBytes(json);
         Debug.Log(json);
 
-        using (var www = new UnityWebRequest(StableDiffusionAddress + "/sdapi/v1/txt2img", "POST"))
+        using (var www = new UnityWebRequest(StableDiffusionAddress + "/sdapi/v1/" + apiType.ToString(), "POST"))
         {
             www.uploadHandler = new UploadHandlerRaw(bytes);
             www.downloadHandler = new DownloadHandlerBuffer();
@@ -297,7 +301,7 @@ public class StableDiffusion : MonoBehaviour
             byte[] imagebytes = System.Convert.FromBase64String(jsonparsed.images[0]);
 
             if (stableDiffusionImage == null)
-                stableDiffusionImage = new Texture2D(1024,512);
+                stableDiffusionImage = new Texture2D(width,height);
 
             stableDiffusionImage.LoadImage(imagebytes);
             stableDiffusionImage.Apply();
