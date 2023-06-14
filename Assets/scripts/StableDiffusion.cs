@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
@@ -12,6 +13,12 @@ using UnityEngine.Networking;
 using Debug = UnityEngine.Debug;
 
 
+public enum APITypes
+{
+    txt2img = 0,
+    img2img
+}
+
 public class StableDiffusion : MonoBehaviour
 {
     private bool isReady = false;
@@ -19,6 +26,7 @@ public class StableDiffusion : MonoBehaviour
     
     private static StableDiffusion instance = null;
     public Texture2D stableDiffusionImage = null;
+    public Texture2D inpaintMask = null;
 
     private string StableDiffusionAddress = "http://127.0.0.1:7860";
     
@@ -253,10 +261,10 @@ public class StableDiffusion : MonoBehaviour
 
         Dictionary<string, object> promptDict = new Dictionary<string, object>();
         promptDict["prompt"] = prompt;
-        promptDict["steps"] = 50;
+        promptDict["steps"] = 20;
         promptDict["cfg_scale"] = 7;
         promptDict["sampler_index"] = "Euler a";
-        promptDict["width"] = 512;
+        promptDict["width"] = 1024;
         promptDict["height"] = 512;
 
         // todo: improve and make it work as dictionary
@@ -289,7 +297,7 @@ public class StableDiffusion : MonoBehaviour
             byte[] imagebytes = System.Convert.FromBase64String(jsonparsed.images[0]);
 
             if (stableDiffusionImage == null)
-                stableDiffusionImage = new Texture2D(512,512);
+                stableDiffusionImage = new Texture2D(1024,512);
 
             stableDiffusionImage.LoadImage(imagebytes);
             stableDiffusionImage.Apply();
@@ -301,7 +309,94 @@ public class StableDiffusion : MonoBehaviour
             // https://docs.unity3d.com/ScriptReference/Texture2D.LoadRawTextureData.html
         }
     }
-    
+
+
+    // todo: return a texture2d
+    // todo: pass extra parameters needed by the AUTOMATIC1111 API. build the data structure for that
+    public IEnumerator TileImage(string prompt)
+    {
+        // ref. https://github.com/Cysharp/UniTask
+        // ref. https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/API
+        // ref. https://docs.unity3d.com/ScriptReference/Networking.UnityWebRequest.Post.html
+
+
+        Dictionary<string, object> promptDict = new Dictionary<string, object>();
+        string[] images = { "data:image/png;base64," + Convert.ToBase64String(stableDiffusionImage.EncodeToPNG()) };
+        promptDict["init_images"] = images;
+        promptDict["mask"] = "data:image/png;base64," + Convert.ToBase64String(inpaintMask.EncodeToPNG());
+        promptDict["prompt"] = prompt;
+        promptDict["steps"] = 20;
+        promptDict["width"] = 1024;
+        promptDict["height"] = 512;
+        promptDict["tiling"] = true;
+        promptDict["denoising_strength"] = .75;
+        promptDict["image_cfg_scale"] = 0;
+        promptDict["mask_blur"] = 4;
+        promptDict["inpainting_fill"] = 1;
+        promptDict["inpaint_full_res"] = true;
+        promptDict["inpaint_full_res_padding"] = 0;
+        promptDict["inpainting_mask_invert"] = 0;
+        promptDict["initial_noise_multiplier"] = 0;
+        promptDict["seed"] = -1;
+        promptDict["subseed"] = -1;
+        promptDict["subseed_strength"] = 0;
+        promptDict["seed_resize_from_h"] = -1;
+        promptDict["seed_resize_from_w"] = -1;
+        promptDict["sampler_name"] = "Euler a";
+        promptDict["batch_size"] = 1;
+        promptDict["n_iter"] = 1;
+        promptDict["cfg_scale"] = 7;
+        promptDict["sampler_index"] = "Euler a";
+        //todo: use override settings to set model
+        //Python:
+        //"override_settings": {
+        //  "sd_model_checkpoint": "v1-5-pruned-emaonly.safetensors [6ce0161689]"
+        //}
+
+    // todo: improve and make it work as dictionary
+    //string json = "{\"prompt\": \"" + prompt + "\",\"steps\": 50,\"cfg_scale\": 7,\"sampler_index\": \"Euler a\",\"width\": 512,\"height\": 512}";
+    //note: JsonUtilities does not support dicts for some reason, so i am using newtonsoft json
+    string json = JsonConvert.SerializeObject(promptDict);
+        var bytes = Encoding.UTF8.GetBytes(json);
+        Debug.Log(json);
+
+        using (var www = new UnityWebRequest(StableDiffusionAddress + "/sdapi/v1/img2img", "POST"))
+        {
+            www.uploadHandler = new UploadHandlerRaw(bytes);
+            www.downloadHandler = new DownloadHandlerBuffer();
+
+            // www.certificateHandler = new ForceAcceptAllCertificates();
+            www.SetRequestHeader("accept", "application/json");
+            www.SetRequestHeader("Content-Type", "application/json");
+
+            // Btw afaik you can simply
+            yield return www.SendWebRequest();
+
+            if (www.result != UnityWebRequest.Result.Success)
+            {
+                Debug.LogError(www.error);
+                yield break;
+            }
+
+            Debug.Log(www.downloadHandler.text);
+
+            StableDiffusionTextToImageResponse jsonparsed = JsonUtility.FromJson<StableDiffusionTextToImageResponse>(www.downloadHandler.text);
+            byte[] imagebytes = System.Convert.FromBase64String(jsonparsed.images[0]);
+
+            if (stableDiffusionImage == null)
+                stableDiffusionImage = new Texture2D(1024, 512, TextureFormat.RGBA32, false);
+
+            stableDiffusionImage.LoadImage(imagebytes);
+            stableDiffusionImage.Apply();
+
+
+            yield return null;
+            // todo: extract the image from the response
+            // todo: fill the variable stableDiffusionImage from the response above
+            // https://docs.unity3d.com/ScriptReference/Texture2D.LoadRawTextureData.html
+        }
+    }
+
     private void OnApplicationQuit()
     {
         StableDiffusionStop();

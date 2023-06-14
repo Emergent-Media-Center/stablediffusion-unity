@@ -9,6 +9,7 @@ This project was created by the Emergent Media Center's 2023 Creative AI Sandbox
 ## Process
 
 The following steps are used to achieve this:
+* Automatic 1111 must be run with the --api command line argument
 * Accept text from a user in Unity
 * Make an API call to Automatic 1111 to generate an image
 * Inpaint the edges with tiling enabled using a mask so the image can repeat
