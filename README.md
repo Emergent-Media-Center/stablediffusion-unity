@@ -29,7 +29,7 @@ The following steps are used to achieve this:
 
 - [X] Automatically Download and Run Stable Diffusion If Not Already Installed
 - [X] Stable Diffusion Image Generation from Unity Text Prompt
-	- [ ] Stable Diffusion Automatic 1111 Image Generation from Drawing Prompt
+	- [ ] Stable Diffusion Image Generation from Drawing Prompt
 - [X] Img2Img Inpainting for Tiling
 - [X] Generated Image Displayed on Unity Skybox
 - [X] VR Drawing
