@@ -27,7 +27,7 @@ The following steps are used to achieve this:
 
 ## Progress
 
-- [X] Automatically Download and Run Stable Diffusion If Not Already Installed
+- [ ] Automatically Download and Run Stable Diffusion If Not Already Installed
 - [X] Stable Diffusion Image Generation from Unity Text Prompt
 	- [ ] Stable Diffusion Image Generation from Drawing Prompt
 - [X] Img2Img Inpainting for Tiling

@@ -4,5 +4,8 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/SimpleDrawer.unity
+    guid: f08c3227bbe4444dfa3c621381f427d2
   m_configObjects: {}
